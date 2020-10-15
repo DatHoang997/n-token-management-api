@@ -116,59 +116,47 @@ exports.getToken = [
 exports.extensionTokenList = [
   async function (req, res) {
     let arr = []
-    let obj = {}
-    Adventure.count({ type: 'jungle' }, function (err, count) {
-      if (err) return apiResponse.ErrorResponse(res, "not found any tokens")
-      const token = await Token.find()
-      if (user) {
-        for (let i = 0; i < count; i++) {
-          obj = {
-            network: user.network,
-            name: user.name,
-            symbol: user.symbol,
-            decimal: parseFloat(user.decimal),
-            cmcId: parseFloat(user.cmcId),
-            apiSymbol: user.apiSymbol,
-            chainType: user.chainType
-          }
-          arr.push(obj)
-          obj = {}
-        }
-        return apiResponse.successResponseWithData(res, "Token", token)
-      }else {
-        return apiResponse.ErrorResponse(res, "not found any tokens")
+    const token = await Token.find()
+    if (token) {
+      for (let i = 0; i < count; i++) {
+        arr.push({
+          network: token.network,
+          name: token.name,
+          symbol: token.symbol,
+          decimal: parseFloat(token.decimal),
+          cmcId: parseFloat(token.cmcId),
+          apiSymbol: token.apiSymbol,
+          chainType: token.chainType
+        })
       }
-    });
+      return apiResponse.successResponseWithData(res, "Token", arr)
+    }else {
+      return apiResponse.ErrorResponse(res, "not found any tokens")
+    }
   }
 ];
 
 exports.walletTokenList = [
   async function (req, res) {
     let arr = []
-    let obj = {}
-    Adventure.count({ type: 'jungle' }, function (err, count) {
-      if (err) return apiResponse.ErrorResponse(res, "not found any tokens")
-      const token = await Token.find()
-      if (user) {
-        for (let i = 0; i < count; i++) {
-          obj = {
-            network: user.network,
-            name: user.name,
-            symbol: user.symbol,
-            decimal: parseFloat(user.decimal),
-            logo: user.logo,
-            address: user.address,
-            format_address: user.format_address,
-            id_market: user.cmcId
-          }
-          arr.push(obj)
-          obj = {}
-        }
-        return apiResponse.successResponseWithData(res, "Token", token)
-      }else {
-        return apiResponse.ErrorResponse(res, "not found any tokens")
+    const token = await Token.find()
+    if (token) {
+      for (let i = 0; i < Token.length; i++) {
+        arr.push({
+          network: token.network,
+          name: token.name,
+          symbol: token.symbol,
+          decimal: parseFloat(token.decimal),
+          logo: token.logo,
+          address: token.address,
+          format_address: token.format_address,
+          id_market: token.cmcId
+        })
       }
-    });
+      return apiResponse.successResponseWithData(res, "Token", arr)
+    }else {
+      return apiResponse.ErrorResponse(res, "not found any tokens")
+    }
   }
 ];
 
