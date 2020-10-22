@@ -11,18 +11,12 @@ mongoose.set("useFindAndModify", false)
 
 exports.saveToken = [
   upload.array('files'),
+  body("_id", "id can not be empty.").notEmpty().trim(),
   body("name", "name can not be empty.").notEmpty().trim(),
   body("network", "network can not be empty.").notEmpty().trim(),
   body("symbol", "symbol can not be empty.").notEmpty().trim(),
   body("decimal", "decimal can not be empty.").notEmpty().trim(),
-  body("cmcId", "cmcId can not be empty.").notEmpty().trim(),
-  body("cgkId", "cgkId can not be empty.").notEmpty().trim(),
-  body("apiSymbol", "apiSymbol can not be empty.").notEmpty().trim(),
-  body("chainType", "chainType can not be empty.").notEmpty().trim(),
-  body("address", "address can not be empty.").notEmpty().trim(),
-  body("logo", "logo can not be empty.").notEmpty().trim(),
   body("format_address", "format_address can not be empty.").notEmpty().trim(),
-  body("segWit", "segWit can not be empty.").notEmpty().trim(),
   async function (req, res) {
     console.log(req.body)
     const errors = validationResult(req)
@@ -30,8 +24,9 @@ exports.saveToken = [
       return apiResponse.validationErrorWithData(res, "Validation Error.", errors.array())
     }
     let saved = await Token.findOne({name: req.body.name})
-    console.log(saved)
-    if (!saved) {
+    console.log(saved, req.body.segWit)
+    if (!saved && !req.body.segWit) {
+      console.log('innnnnn')
       let token = new Token({
         name: req.body.name,
         network: req.body.network,
@@ -44,7 +39,25 @@ exports.saveToken = [
         address: req.body.address,
         logo: req.body.logo,
         format_address: req.body.format_address,
-        segWit: req.body.segWit
+        status_accept: false
+      })
+      token.save()
+      return apiResponse.successResponseWithData(res, "Success", token)
+    } else if (!saved && req.body.segWit) {
+      let token = new Token({
+        name: req.body.name,
+        network: req.body.network,
+        symbol: req.body.symbol,
+        decimal: req.body.decimal,
+        cmcId: req.body.cmcId,
+        cgkId: req.body.cgkId,
+        apiSymbol: req.body.apiSymbol,
+        chainType: req.body.chainType,
+        address: req.body.address,
+        logo: req.body.logo,
+        format_address: req.body.format_address,
+        segWit: req.body.segWit,
+        status_accept: false
       })
       token.save()
       return apiResponse.successResponseWithData(res, "Success", token)
@@ -55,45 +68,88 @@ exports.saveToken = [
 ];
 
 exports.editToken = [
-  // body("_id", "id can not be empty.").notEmpty().trim(),
-  // body("name", "name can not be empty.").notEmpty().trim(),
-  // body("network", "network can not be empty.").notEmpty().trim(),
-  // body("symbol", "symbol can not be empty.").notEmpty().trim(),
-  // body("decimal", "decimal can not be empty.").notEmpty().trim(),
-  // body("cmcId", "cmcId can not be empty.").notEmpty().trim(),
-  // body("cgkId", "cgkId can not be empty.").notEmpty().trim(),
-  // body("apiSymbol", "apiSymbol can not be empty.").notEmpty().trim(),
-  // body("chainType", "chainType can not be empty.").notEmpty().trim(),
-  // body("address", "address can not be empty.").notEmpty().trim(),
-  // body("logo", "logo can not be empty.").notEmpty().trim(),
-  // body("format_address", "format_address can not be empty.").notEmpty().trim(),
-  // async function (req, res) {
-  //   const errors = validationResult(req)
-  //   if (!errors.isEmpty()) {
-  //     return apiResponse.validationErrorWithData(res, "Validation Error.", errors.array())
-  //   }
-  //   console.log(req.body)
-  //   let token = {
-  //     name: req.body.name,
-  //     network: req.body.network,
-  //     symbol: req.body.symbol,
-  //     decimal: req.body.decimal,
-  //     cmcId: req.body.cmcId,
-  //     cgkId: req.body.cgkId,
-  //     apiSymbol: req.body.apiSymbol,
-  //     chainType: req.body.chainType,
-  //     address: req.body.address,
-  //     logo: req.body.logo,
-  //     format_address: req.body.format_address,
-  //   }
-  //   Token.findByIdAndUpdate(req.params._id, {token},function (err) {
-  //     if (err) {
-  //       return apiResponse.ErrorResponse(res, err)
-  //     }else{
-  //       return apiResponse.successResponseWithData(res,"Token update Success.", bookData)
-  //     }
-  //   })
-  // }
+  upload.array('files'),
+  body("_id", "id can not be empty.").notEmpty().trim(),
+  body("name", "name can not be empty.").notEmpty().trim(),
+  body("network", "network can not be empty.").notEmpty().trim(),
+  body("symbol", "symbol can not be empty.").notEmpty().trim(),
+  body("decimal", "decimal can not be empty.").notEmpty().trim(),
+  body("format_address", "format_address can not be empty.").notEmpty().trim(),
+  async function (req, res) {
+    const errors = validationResult(req)
+    if (!errors.isEmpty()) {
+      console.log(errors)
+      return apiResponse.validationErrorWithData(res, "Validation Error.", errors.array())
+    }
+    console.log(req.body)
+    try {
+      if (!req.body.segWit) {
+        console.log('aloooo')
+        let update = await Token.findOneAndUpdate({
+          _id: req.body._id
+        }, {
+          name: req.body.name,
+          network: req.body.network,
+          symbol: req.body.symbol,
+          decimal: req.body.decimal,
+          cmcId: req.body.cmcId,
+          cgkId: req.body.cgkId,
+          apiSymbol: req.body.apiSymbol,
+          chainType: req.body.chainType,
+          address: req.body.address,
+          logo: req.body.logo,
+          format_address: req.body.format_address,
+        })
+        console.log(update)
+        return apiResponse.successResponseWithData(res, "Success", update)
+      } else if (req.body.segWit) {
+        let update = await Token.findOneAndUpdate({
+          _id: req.body._id
+        }, {
+          name: req.body.name,
+          network: req.body.network,
+          symbol: req.body.symbol,
+          decimal: req.body.decimal,
+          cmcId: req.body.cmcId,
+          cgkId: req.body.cgkId,
+          apiSymbol: req.body.apiSymbol,
+          chainType: req.body.chainType,
+          address: req.body.address,
+          logo: req.body.logo,
+          format_address: req.body.format_address,
+          segWit: req.body.segWit
+        })
+        return apiResponse.successResponseWithData(res, "Success", update)
+      }
+    }
+    catch (err){
+      console.log(err)
+      return  apiResponse.ErrorResponse(res, "false")
+    }
+  }
+];
+
+exports.acceptToken = [
+  upload.array('files'),
+  body("_id", "id can not be empty.").notEmpty().trim(),
+  async function (req, res) {
+    const errors = validationResult(req)
+    if (!errors.isEmpty()) {
+      console.log(errors)
+      return apiResponse.validationErrorWithData(res, "Validation Error.", errors.array())
+    }
+    console.log(req.body)
+    try {
+      console.log('aloooo')
+      let update = await Token.findOneAndUpdate({_id: req.body._id}, {status_accept : true})
+      console.log(update)
+      return apiResponse.successResponseWithData(res, "Success", update)
+    }
+    catch (err){
+      console.log(err)
+      return  apiResponse.ErrorResponse(res, "false")
+    }
+  }
 ];
 
 exports.deleteToken = [
@@ -176,3 +232,24 @@ exports.walletTokenList = [
   }
 ];
 
+exports.getAcceptedToken = [
+  async function (req, res) {
+    const token = await Token.find({status_accept: true})
+    if (token) {
+      return apiResponse.successResponseWithData(res, "Token", token)
+    }else {
+      return apiResponse.ErrorResponse(res, "not found any tokens")
+    }
+  }
+];
+
+exports.getWaitingToken = [
+  async function (req, res) {
+    const token = await Token.find({status_accept: false})
+    if (token) {
+      return apiResponse.successResponseWithData(res, "Token", token)
+    }else {
+      return apiResponse.ErrorResponse(res, "not found any tokens")
+    }
+  }
+];
