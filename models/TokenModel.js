@@ -12,6 +12,7 @@ var TokenSchema = new mongoose.Schema({
 	address: {type: String},
 	logo: {type: String},
 	format_address: {type: String},
+	segWit: {type: Boolean}
 }, {timestamps: true})
 
 module.exports = mongoose.model("Token", TokenSchema)
