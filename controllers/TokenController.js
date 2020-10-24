@@ -2,31 +2,31 @@ const Token = require("../models/TokenModel")
 const { body, validationResult } = require("express-validator")
 const apiResponse = require("../helpers/apiResponse")
 var mongoose = require("mongoose")
-var {merchant_status} = require("../helpers/constants")
-const global = require("../helpers/global")
+const auth = require("../middlewares/jwt")
+const admin = require("../middlewares/admin")
 
 var upload = require('../helpers/upload')
 
 mongoose.set("useFindAndModify", false)
 
 exports.saveToken = [
+  auth,
   upload.array('files'),
-  body("_id", "id can not be empty.").notEmpty().trim(),
   body("name", "name can not be empty.").notEmpty().trim(),
   body("network", "network can not be empty.").notEmpty().trim(),
   body("symbol", "symbol can not be empty.").notEmpty().trim(),
   body("decimal", "decimal can not be empty.").notEmpty().trim(),
   body("format_address", "format_address can not be empty.").notEmpty().trim(),
   async function (req, res) {
-    console.log(req.body)
     const errors = validationResult(req)
     if (!errors.isEmpty()) {
+      console.log(errors)
       return apiResponse.validationErrorWithData(res, "Validation Error.", errors.array())
     }
+    console.log(req.body)
     let saved = await Token.findOne({name: req.body.name})
-    console.log(saved, req.body.segWit)
     if (!saved && !req.body.segWit) {
-      console.log('innnnnn')
+      console.log('innnn')
       let token = new Token({
         name: req.body.name,
         network: req.body.network,
@@ -39,11 +39,12 @@ exports.saveToken = [
         address: req.body.address,
         logo: req.body.logo,
         format_address: req.body.format_address,
-        status_accept: false
+        accept_status: false
       })
       token.save()
       return apiResponse.successResponseWithData(res, "Success", token)
     } else if (!saved && req.body.segWit) {
+      console.log('innnn1')
       let token = new Token({
         name: req.body.name,
         network: req.body.network,
@@ -57,7 +58,7 @@ exports.saveToken = [
         logo: req.body.logo,
         format_address: req.body.format_address,
         segWit: req.body.segWit,
-        status_accept: false
+        accept_status: false
       })
       token.save()
       return apiResponse.successResponseWithData(res, "Success", token)
@@ -68,6 +69,7 @@ exports.saveToken = [
 ];
 
 exports.editToken = [
+  auth,
   upload.array('files'),
   body("_id", "id can not be empty.").notEmpty().trim(),
   body("name", "name can not be empty.").notEmpty().trim(),
@@ -78,13 +80,10 @@ exports.editToken = [
   async function (req, res) {
     const errors = validationResult(req)
     if (!errors.isEmpty()) {
-      console.log(errors)
       return apiResponse.validationErrorWithData(res, "Validation Error.", errors.array())
     }
-    console.log(req.body)
     try {
       if (!req.body.segWit) {
-        console.log('aloooo')
         let update = await Token.findOneAndUpdate({
           _id: req.body._id
         }, {
@@ -100,7 +99,6 @@ exports.editToken = [
           logo: req.body.logo,
           format_address: req.body.format_address,
         })
-        console.log(update)
         return apiResponse.successResponseWithData(res, "Success", update)
       } else if (req.body.segWit) {
         let update = await Token.findOneAndUpdate({
@@ -123,45 +121,40 @@ exports.editToken = [
       }
     }
     catch (err){
-      console.log(err)
       return  apiResponse.ErrorResponse(res, "false")
     }
   }
 ];
 
 exports.acceptToken = [
+  auth,
+  admin,
   upload.array('files'),
   body("_id", "id can not be empty.").notEmpty().trim(),
   async function (req, res) {
     const errors = validationResult(req)
     if (!errors.isEmpty()) {
-      console.log(errors)
       return apiResponse.validationErrorWithData(res, "Validation Error.", errors.array())
     }
-    console.log(req.body)
     try {
-      console.log('aloooo')
-      let update = await Token.findOneAndUpdate({_id: req.body._id}, {status_accept : true})
-      console.log(update)
+      let update = await Token.findOneAndUpdate({_id: req.body._id}, {accept_status: true})
       return apiResponse.successResponseWithData(res, "Success", update)
     }
     catch (err){
-      console.log(err)
       return  apiResponse.ErrorResponse(res, "false")
     }
   }
 ];
 
 exports.deleteToken = [
+  auth,
+  admin,
   async function (req, res) {
     let id = await req.params._id
-    console.log('id',id)
     Token.findByIdAndRemove(id, function (err) {
-      console.log(err)
       if (err) {
         return apiResponse.ErrorResponse(res, err)
       }else{
-        console.log('success')
         return apiResponse.successResponse(res,"Token delete Success.")
       }
     })
@@ -169,6 +162,7 @@ exports.deleteToken = [
 ];
 
 exports.getToken = [
+  auth,
   async function (req, res) {
     const token = await Token.find()
     if (token) {
@@ -183,7 +177,6 @@ exports.extensionTokenList = [
   async function (req, res) {
     let arr = []
     const token = await Token.find()
-    console.log(token)
     if (token) {
       for (let i = 0; i < token.length; i++) {
         arr.push({
@@ -209,11 +202,8 @@ exports.walletTokenList = [
   async function (req, res) {
     let arr = []
     const token = await Token.find()
-    console.log(token)
     if (token) {
-      console.log(token[1].symbol)
       for (let i = 0; i < token.length; i++) {
-        console.log('fffffffffff',i)
         arr.push({
           network: token[i].network,
           name: token[i].name,
@@ -233,8 +223,9 @@ exports.walletTokenList = [
 ];
 
 exports.getAcceptedToken = [
+  auth,
   async function (req, res) {
-    const token = await Token.find({status_accept: true})
+    const token = await Token.find({accept_status: true})
     if (token) {
       return apiResponse.successResponseWithData(res, "Token", token)
     }else {
@@ -244,8 +235,9 @@ exports.getAcceptedToken = [
 ];
 
 exports.getWaitingToken = [
+  auth,
   async function (req, res) {
-    const token = await Token.find({status_accept: false})
+    const token = await Token.find({accept_status: false})
     if (token) {
       return apiResponse.successResponseWithData(res, "Token", token)
     }else {
