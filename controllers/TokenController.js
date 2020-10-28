@@ -40,7 +40,7 @@ exports.saveToken = [
       })
       token.save()
       return apiResponse.successResponseWithData(res, "Success", token)
-    } else if (!saved && req.body.segWit) {
+    } else if (!saved && req.body.segWit == 'true') {
       let token = new Token({
         name: req.body.name,
         network: req.body.network,
@@ -53,7 +53,27 @@ exports.saveToken = [
         address: req.body.address,
         logo: req.body.logo,
         format_address: req.body.format_address,
-        segWit: req.body.segWit,
+        segWit: true,
+        legacy: 'segWit',
+        accept_status: false
+      })
+      token.save()
+      return apiResponse.successResponseWithData(res, "Success", token)
+    } else if (!saved && req.body.segWit == 'false') {
+      let token = new Token({
+        name: req.body.name,
+        network: req.body.network,
+        symbol: req.body.symbol,
+        decimal: req.body.decimal,
+        cmcId: req.body.cmcId,
+        cgkId: req.body.cgkId,
+        apiSymbol: req.body.apiSymbol,
+        chainType: req.body.chainType,
+        address: req.body.address,
+        logo: req.body.logo,
+        format_address: req.body.format_address,
+        segWit: false,
+        legacy: 'legacy',
         accept_status: false
       })
       token.save()
@@ -96,7 +116,7 @@ exports.editToken = [
           format_address: req.body.format_address,
         })
         return apiResponse.successResponseWithData(res, "Success", update)
-      } else if (req.body.segWit) {
+      } else if (req.body.segWit == 'true') {
         let update = await Token.findOneAndUpdate({
           _id: req.body._id
         }, {
@@ -111,7 +131,27 @@ exports.editToken = [
           address: req.body.address,
           logo: req.body.logo,
           format_address: req.body.format_address,
-          segWit: req.body.segWit
+          legacy: 'segWit',
+          segWit: true
+        })
+        return apiResponse.successResponseWithData(res, "Success", update)
+      } else if (req.body.segWit == 'false') {
+        let update = await Token.findOneAndUpdate({
+          _id: req.body._id
+        }, {
+          name: req.body.name,
+          network: req.body.network,
+          symbol: req.body.symbol,
+          decimal: req.body.decimal,
+          cmcId: req.body.cmcId,
+          cgkId: req.body.cgkId,
+          apiSymbol: req.body.apiSymbol,
+          chainType: req.body.chainType,
+          address: req.body.address,
+          logo: req.body.logo,
+          format_address: req.body.format_address,
+          legacy: 'legacy',
+          segWit: false
         })
         return apiResponse.successResponseWithData(res, "Success", update)
       }
@@ -128,7 +168,6 @@ exports.acceptToken = [
   upload.array('files'),
   body("_id", "id can not be empty.").notEmpty().trim(),
   async function (req, res) {
-    console.log(req.body)
     const errors = validationResult(req)
     if (!errors.isEmpty()) {
       return apiResponse.validationErrorWithData(res, "Validation Error.", errors.array())
@@ -211,7 +250,9 @@ exports.walletTokenList = [
           logo: token[i].logo,
           address: token[i].address,
           format_address: token[i].format_address,
-          id_market: token[i].cmcId
+          id_market: token[i].cmcId,
+          legacy: token[i].legacy,
+          isSegWit: token[i].segWit
         })
       }
       return apiResponse.sendToken(res, arr)
@@ -228,7 +269,6 @@ exports.getAcceptedToken = [
     let data = []
     for (let i = 0; i < token.length; i++) {
       const network = await Network.findOne({networks: token[i].network})
-      console.log(network)
       data.push({
         _id: token[i]._id,
         name: token[i].name,

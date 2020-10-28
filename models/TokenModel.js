@@ -14,6 +14,7 @@ var TokenSchema = new mongoose.Schema({
 	chainType:{type: String, required: false},
 	logo: {type: String, required: false},
 	segWit: {type: Boolean, required: false},
+	legacy: {type: String, required: false}
 }, {timestamps: true})
 
 module.exports = mongoose.model("Token", TokenSchema)

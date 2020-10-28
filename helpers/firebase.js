@@ -20,6 +20,5 @@ exports.createRefLink = async function (username, subid) {
         "option": "SHORT"
       }
     });
-  console.log(response)
   return response.data.shortLink
 }
