@@ -255,7 +255,6 @@ exports.getAcceptedToken = [
 ];
 
 exports.getWaitingToken = [
-  auth,
   async function (req, res) {
     const token = await Token.find({accept_status: false})
     let data = []
