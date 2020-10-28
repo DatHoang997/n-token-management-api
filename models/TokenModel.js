@@ -6,7 +6,7 @@ var TokenSchema = new mongoose.Schema({
 	network: {type: String, required: true},
 	symbol: {type: String, required: true},
 	decimal: {type: Number, required: true},
-	format_address: {type: String, required: true},
+	format_address: {type: String, required: false},
 	address: {type: String, required: false},
 	cmcId: {type: String, required: false},
 	cgkId: {type: String, required: false},
