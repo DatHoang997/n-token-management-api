@@ -176,7 +176,7 @@ exports.extensionTokenList = [
     const token = await Token.find()
     if (token) {
       for (let i = 0; i < token.length; i++) {
-        const network = await Network.findOne({_id: token[i].network})
+        const network = await Network.findOne({networks: token[i].network})
         arr.push({
           network: network.networks,
           name: token[i].name,
@@ -202,7 +202,7 @@ exports.walletTokenList = [
     const token = await Token.find()
     if (token) {
       for (let i = 0; i < token.length; i++) {
-        const network = await Network.findOne({_id: token[i].network})
+        const network = await Network.findOne({networks: token[i].network})
         arr.push({
           network: network.networks,
           name: token[i].name,
