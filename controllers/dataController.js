@@ -1,5 +1,6 @@
 const Token = require("../models/TokenModel")
 const Network = require("../models/NetworkModel")
+const Dapp = require("../models/DappModel")
 const { body, validationResult } = require("express-validator")
 const apiResponse = require("../helpers/apiResponse")
 var mongoose = require("mongoose")
@@ -15,7 +16,6 @@ exports.saveToken = [
   upload.array('files'),
   body("name", "name can not be empty.").notEmpty().trim(),
   body("network", "network can not be empty.").notEmpty().trim(),
-  body("symbol", "symbol can not be empty.").notEmpty().trim(),
   body("decimal", "decimal can not be empty.").notEmpty().trim(),
   async function (req, res) {
     const errors = validationResult(req)
@@ -36,6 +36,7 @@ exports.saveToken = [
         address: req.body.address,
         logo: req.body.logo,
         format_address: req.body.format_address,
+        suffix: req.body.suffix,
         accept_status: false
       })
       token.save()
@@ -53,6 +54,7 @@ exports.saveToken = [
         address: req.body.address,
         logo: req.body.logo,
         format_address: req.body.format_address,
+        suffix: req.body.suffix,
         segWit: true,
         legacy: 'segWit',
         accept_status: false
@@ -72,6 +74,7 @@ exports.saveToken = [
         address: req.body.address,
         logo: req.body.logo,
         format_address: req.body.format_address,
+        suffix: req.body.suffix,
         segWit: false,
         legacy: 'legacy',
         accept_status: false
@@ -90,9 +93,7 @@ exports.editToken = [
   body("_id", "id can not be empty.").notEmpty().trim(),
   body("name", "name can not be empty.").notEmpty().trim(),
   body("network", "network can not be empty.").notEmpty().trim(),
-  body("symbol", "symbol can not be empty.").notEmpty().trim(),
   body("decimal", "decimal can not be empty.").notEmpty().trim(),
-  body("format_address", "format_address can not be empty.").notEmpty().trim(),
   async function (req, res) {
     const errors = validationResult(req)
     if (!errors.isEmpty()) {
@@ -114,6 +115,7 @@ exports.editToken = [
           address: req.body.address,
           logo: req.body.logo,
           format_address: req.body.format_address,
+          suffix: req.body.suffix,
         })
         return apiResponse.successResponseWithData(res, "Success", update)
       } else if (req.body.segWit == 'true') {
@@ -131,6 +133,7 @@ exports.editToken = [
           address: req.body.address,
           logo: req.body.logo,
           format_address: req.body.format_address,
+          suffix: req.body.suffix,
           legacy: 'segWit',
           segWit: true
         })
@@ -150,6 +153,7 @@ exports.editToken = [
           address: req.body.address,
           logo: req.body.logo,
           format_address: req.body.format_address,
+          suffix: req.body.suffix,
           legacy: 'legacy',
           segWit: false
         })
@@ -215,18 +219,39 @@ exports.extensionTokenList = [
     const token = await Token.find()
     if (token) {
       for (let i = 0; i < token.length; i++) {
-        const network = await Network.findOne({networks: token[i].network})
-        arr.push({
-          network: network.networks,
-          name: token[i].name,
-          symbol: token[i].symbol,
-          decimal: parseFloat(token[i].decimal),
-          cmcId: parseFloat(token[i].cmcId),
-          cgkId: token[i].cgkId,
-          apiSymbol: token[i].apiSymbol,
-          chainType: token[i].chainType,
-          isSegWit: token[i].segWit
-        })
+        let obj = {}
+        obj.name = token[i].name
+        obj.network = token[i].network
+        if(token[i].symbol != '') {
+          obj.symbol = token[i].symbol
+        }
+        if(token[i].decimal != null) {
+          obj.decimal = parseFloat(token[i].decimal)
+        }
+        if(token[i].decimal == null) {
+          obj.decimal = 0
+        }
+        if(token[i].cmcId != '') {
+          obj.cmcId =parseFloat(token[i].cmcId)
+        }
+        if(token[i].apiSymbol != '') {
+          obj.apiSymbol = token[i].apiSymbol
+        }
+        if(token[i].chainType != '') {
+          obj.chainType = token[i].chainType
+        }
+        if(token[i].segWit != '') {
+          obj.segWit = token[i].segWit
+        }
+        if(token[i].suffix != '') {
+          obj.suffix = token[i].suffix
+        }
+        if(token[i].logo != '') {
+          obj.logo = token[i].logo
+        }
+        arr.push(
+          obj
+        )
       }
       return apiResponse.sendToken(res, arr)
     }else {
@@ -241,9 +266,8 @@ exports.walletTokenList = [
     const token = await Token.find()
     if (token) {
       for (let i = 0; i < token.length; i++) {
-        const network = await Network.findOne({networks: token[i].network})
         arr.push({
-          network: network.networks,
+          network: token[i].network,
           name: token[i].name,
           symbol: token[i].symbol,
           decimal: parseFloat(token[i].decimal),
@@ -283,7 +307,8 @@ exports.getAcceptedToken = [
         logo: token[i].logo,
         format_address: token[i].format_address,
         segWit: token[i].segWit,
-        explorer: network.explorer
+        explorer: network.explorer,
+        suffix: token[i].suffix
       })
     }
     if (token) {
@@ -315,7 +340,8 @@ exports.getWaitingToken = [
         logo: token[i].logo,
         format_address: token[i].format_address,
         segWit: token[i].segWit,
-        explorer: network.explorer
+        explorer: network.explorer,
+        suffix: token[i].suffix
       })
     }
     if (token) {
@@ -331,6 +357,7 @@ exports.saveNetwork = [
   upload.array('files'),
   body("explorer", "explorer can not be empty.").notEmpty().trim(),
   body("network", "network can not be empty.").notEmpty().trim(),
+  // body("segWit", "segWit can not be empty.").notEmpty().trim(),
   async function (req, res) {
     const errors = validationResult(req)
     if (!errors.isEmpty()) {
@@ -340,7 +367,8 @@ exports.saveNetwork = [
     if (!saved) {
       let network = new Network({
         networks: req.body.network,
-        explorer: req.body.explorer
+        explorer: req.body.explorer,
+        isSegWit: req.body.segWit
       })
       network.save()
       return apiResponse.successResponseWithData(res, "Success", network)
@@ -354,8 +382,10 @@ exports.editNetwork = [
   body("explorer", "explorer can not be empty.").notEmpty().trim(),
   body("network", "network can not be empty.").notEmpty().trim(),
   async function (req, res) {
+    console.log(req.body)
     const errors = validationResult(req)
     if (!errors.isEmpty()) {
+      console.log(errors)
       return apiResponse.validationErrorWithData(res, "Validation Error.", errors.array())
     }
     try {
@@ -377,14 +407,19 @@ exports.deleteNetwork = [
   auth,
   admin,
   async function (req, res) {
-    let id = await req.params._id
-    Network.findByIdAndRemove(id, function (err) {
-      if (err) {
-        return apiResponse.ErrorResponse(res, err)
-      }else{
-        return apiResponse.successResponse(res,"Network delete Success.")
-      }
-    })
+    let token = Token.findOne({network: req.params.name})
+    let dapp = Dapp.findOne({network: req.params.name})
+    if (token == null && dapp == null) {
+      Network.findOneAndRemove({name: req.params.name}, function (err) {
+        if (err) {
+          return apiResponse.ErrorResponse(res, err)
+        }else{
+          return apiResponse.successResponse(res,"Network delete Success.")
+        }
+      })
+    } else {
+      return apiResponse.successResponse(res, false)
+    }
   }
 ];
 
@@ -396,6 +431,103 @@ exports.getNetwork = [
       return apiResponse.successResponseWithData(res, "Network", network)
     }else {
       return apiResponse.ErrorResponse(res, "not found any networks")
+    }
+  }
+];
+
+exports.saveDapp = [
+  auth,
+  upload.array('files'),
+  body("name", "name can not be empty.").notEmpty().trim(),
+  body("title", "title can not be empty.").notEmpty().trim(),
+  body("url", "url can not be empty.").notEmpty().trim(),
+  body("img", "img can not be empty.").notEmpty().trim(),
+  body("network", "network can not be empty.").notEmpty().trim(),
+  async function (req, res) {
+    const errors = validationResult(req)
+    if (!errors.isEmpty()) {
+      return apiResponse.validationErrorWithData(res, "Validation Error.", errors.array())
+    }
+    let saved = await Dapp.findOne({name: req.body.name})
+    if (!saved) {
+      let dapp = new Dapp({
+        name: req.body.name,
+        title: req.body.title,
+        url: req.body.url,
+        img: req.body.img,
+        network: req.body.network
+      })
+      dapp.save()
+      return apiResponse.successResponseWithData(res, "Success", dapp)
+    }
+  }
+];
+
+exports.editDapp = [
+  auth,
+  upload.array('files'),
+  body("name", "name can not be empty.").notEmpty().trim(),
+  body("title", "title can not be empty.").notEmpty().trim(),
+  body("url", "url can not be empty.").notEmpty().trim(),
+  body("img", "img can not be empty.").notEmpty().trim(),
+  body("_id", "id can not be empty.").notEmpty().trim(),
+  body("network", "network can not be empty.").notEmpty().trim(),
+  async function (req, res) {
+    console.log(req.body)
+    const errors = validationResult(req)
+    if (!errors.isEmpty()) {
+      return apiResponse.validationErrorWithData(res, "Validation Error.", errors.array())
+    }
+    try {
+      let update = await Dapp.findOneAndUpdate({
+        _id: req.body._id
+      }, {
+        name: req.body.name,
+        title: req.body.title,
+        url: req.body.url,
+        img: req.body.img,
+        network: req.body.network
+      })
+      return apiResponse.successResponseWithData(res, "Success", update)
+    }
+    catch (err){
+      return  apiResponse.ErrorResponse(res, "false")
+    }
+  }
+];
+
+exports.deleteDapp = [
+  auth,
+  admin,
+  async function (req, res) {
+    let id = await req.params._id
+    Dapp.findByIdAndRemove(id, function (err) {
+      if (err) {
+        return apiResponse.ErrorResponse(res, err)
+      }else{
+        return apiResponse.successResponse(res,"dapp delete Success.")
+      }
+    })
+  }
+];
+
+exports.getDapp = [
+  async function (req, res) {
+    const dapp = await Dapp.find()
+    let arr = []
+    if (dapp) {
+      for (let i = 0; i < dapp.length; i++) {
+        arr.push({
+          name: dapp[i].name,
+          title: dapp[i].title,
+          url: dapp[i].url,
+          img: dapp[i].img,
+          network: dapp[i].network
+        })
+      }
+      return apiResponse.sendToken(res, arr)
+    }else {
+      return apiResponse.ErrorResponse(res, "not found any Dapps")
     }
   }
 ];
