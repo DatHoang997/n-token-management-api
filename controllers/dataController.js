@@ -22,7 +22,6 @@ exports.saveToken = [
     if (!errors.isEmpty()) {
       return apiResponse.validationErrorWithData(res, "Validation Error.", errors.array())
     }
-    console.log(req.body.segWit)
     let saved = await Token.findOne({name: req.body.name})
     if (!saved && !req.body.segWit) {
       let token = new Token({
@@ -381,10 +380,8 @@ exports.editNetwork = [
   body("explorer", "explorer can not be empty.").notEmpty().trim(),
   body("network", "network can not be empty.").notEmpty().trim(),
   async function (req, res) {
-    console.log(req.body)
     const errors = validationResult(req)
     if (!errors.isEmpty()) {
-      console.log(errors)
       return apiResponse.validationErrorWithData(res, "Validation Error.", errors.array())
     }
     try {
@@ -472,7 +469,6 @@ exports.editDapp = [
   body("_id", "id can not be empty.").notEmpty().trim(),
   body("network", "network can not be empty.").notEmpty().trim(),
   async function (req, res) {
-    console.log(req.body)
     const errors = validationResult(req)
     if (!errors.isEmpty()) {
       return apiResponse.validationErrorWithData(res, "Validation Error.", errors.array())
