@@ -214,7 +214,7 @@ exports.getToken = [
 exports.extensionTokenList = [
   async function (req, res) {
     let arr = []
-    const token = await Token.find()
+    const token = await Token.find({accept_status: true})
     if (token) {
       for (let i = 0; i < token.length; i++) {
         let obj = {}
@@ -261,7 +261,7 @@ exports.extensionTokenList = [
 exports.walletTokenList = [
   async function (req, res) {
     let arr = []
-    const token = await Token.find()
+    const token = await Token.find({accept_status: true})
     if (token) {
       for (let i = 0; i < token.length; i++) {
         arr.push({
