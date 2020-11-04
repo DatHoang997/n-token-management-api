@@ -22,6 +22,7 @@ exports.saveToken = [
     if (!errors.isEmpty()) {
       return apiResponse.validationErrorWithData(res, "Validation Error.", errors.array())
     }
+    console.log(req.body.segWit)
     let saved = await Token.findOne({name: req.body.name})
     if (!saved && !req.body.segWit) {
       let token = new Token({
@@ -35,7 +36,7 @@ exports.saveToken = [
         chainType: req.body.chainType,
         address: req.body.address,
         logo: req.body.logo,
-        format_address: req.body.format_address,
+        format_address: '',
         suffix: req.body.suffix,
         accept_status: false
       })
@@ -53,10 +54,9 @@ exports.saveToken = [
         chainType: req.body.chainType,
         address: req.body.address,
         logo: req.body.logo,
-        format_address: req.body.format_address,
+        format_address: 'SegWit',
         suffix: req.body.suffix,
         segWit: true,
-        legacy: 'segWit',
         accept_status: false
       })
       token.save()
@@ -73,10 +73,9 @@ exports.saveToken = [
         chainType: req.body.chainType,
         address: req.body.address,
         logo: req.body.logo,
-        format_address: req.body.format_address,
+        format_address: 'legacy',
         suffix: req.body.suffix,
         segWit: false,
-        legacy: 'legacy',
         accept_status: false
       })
       token.save()
