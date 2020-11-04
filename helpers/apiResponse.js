@@ -54,3 +54,7 @@ exports.unauthorizedResponse = function (res, msg) {
 	}
 	return res.status(401).json(data)
 }
+
+exports.sendToken = function (res, data) {
+	return res.status(200).json(data)
+}
